@@ -1,0 +1,63 @@
+#include "rclcpp/rclcpp.hpp"
+#include "geometry_msgs/msg/vector3.hpp"
+#include <iostream>
+
+int main(int argc, char * argv[])
+{
+    rclcpp::init(argc, argv);
+    auto node = rclcpp::Node::make_shared("pub1_2_node");
+    auto publisher = node->create_publisher<geometry_msgs::msg::Vector3>("topic_vector3", 10);
+    rclcpp::WallRate loop_rate(1);
+
+    while (rclcpp::ok()) {
+        geometry_msgs::msg::Vector3 msg;
+        std::cout << "실수 3개 입력 (x y z): ";
+        std::cin >> msg.x >> msg.y >> msg.z;
+
+        publisher->publish(msg);
+        RCLCPP_INFO(node->get_logger(), "Published: x=%.2f y=%.2f z=%.2f", msg.x, msg.y, msg.z);
+
+        loop_rate.sleep();
+    }
+
+    rclcpp::shutdown();
+    return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+package.xml
+<?xml version="1.0"?>
+<package format="2">
+  <name>pub1_2</name>
+  <version>0.0.1</version>
+  <description>Publisher with Vector3</description>
+
+  <maintainer email="you@example.com">Your Name</maintainer>
+  <license>Apache License 2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>geometry_msgs</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
+////////////////////////////////////////////////////////////////////////////////////////
+cmake_minimum_required(VERSION 3.5)
+project(pub1_2)
+
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(geometry_msgs REQUIRED)
+
+add_executable(pub1_2_node src/pub1_2_node.cpp)
+ament_target_dependencies(pub1_2_node rclcpp geometry_msgs)
+
+install(TARGETS
+  pub1_2_node
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+ament_package()
