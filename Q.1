@@ -1,0 +1,29 @@
+예제1번을 수정하여 문자열대신에정수값을0으로 초기화하고 1
+씩증가시키면서퍼블리시하는패키지pub1-1를작성하시오.
+토픽메시지인터페이스는std_msgs/msg/Int32을 사용할 것
+#include "rclcpp/rclcpp.hpp"
+#include "std_msgs/msg/int32.hpp"  // 문자열 대신 int32 메시지 타입 사용
+#include <memory>
+
+int main(int argc, char * argv[])
+{
+  rclcpp::init(argc, argv);
+  auto node = std::make_shared<rclcpp::Node>("int_publisher");
+  auto publisher = node->create_publisher<std_msgs::msg::Int32>("topic_pub1", 10);
+
+  rclcpp::WallRate loop_rate(1.0);  // 1초마다 반복
+  int count = 0;
+
+  while (rclcpp::ok()) {
+    std_msgs::msg::Int32 msg;
+    msg.data = count++;
+
+    RCLCPP_INFO(node->get_logger(), "Publishing: %d", msg.data);
+    publisher->publish(msg);
+
+    loop_rate.sleep();
+  }
+
+  rclcpp::shutdown();
+  return 0;
+}
