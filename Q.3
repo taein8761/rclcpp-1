@@ -1,0 +1,58 @@
+#include "rclcpp/rclcpp.hpp"
+#include "geometry_msgs/msg/twist.hpp"
+#include <iostream>
+
+using std::placeholders::_1;
+using namespace std::chrono_literals;
+
+class TeleopTurtle : public rclcpp::Node {
+public:
+    TeleopTurtle() : Node("pub1_3_node") {
+        publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("/turtle1/cmd_vel", 10);
+        timer_ = this->create_wall_timer(100ms, std::bind(&TeleopTurtle::key_loop, this));
+    }
+
+private:
+    void key_loop() {
+        char c;
+        std::cout << "입력 (f=전진, b=후진, l=좌회전, r=우회전, q=종료): ";
+        std::cin >> c;
+
+        geometry_msgs::msg::Twist msg;
+        switch (c) {
+            case 'f': msg.linear.x = 2.0; break;
+            case 'b': msg.linear.x = -2.0; break;
+            case 'l': msg.angular.z = 2.0; break;
+            case 'r': msg.angular.z = -2.0; break;
+            case 'q': rclcpp::shutdown(); return;
+            default: std::cout << "잘못된 입력입니다\n"; return;
+        }
+
+        publisher_->publish(msg);
+    }
+
+    rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr publisher_;
+    rclcpp::TimerBase::SharedPtr timer_;
+};
+
+int main(int argc, char *argv[]) {
+    rclcpp::init(argc, argv);
+    rclcpp::spin(std::make_shared<TeleopTurtle>());
+    rclcpp::shutdown();
+    return 0;
+}
+//////////////////////////////////////////////////////////////////////////////////////////
+CMakeLists.txt
+
+add_executable(pub1_3_node src/pub1_3_node.cpp)
+ament_target_dependencies(pub1_3_node rclcpp geometry_msgs)
+install(TARGETS pub1_3_node DESTINATION lib/${PROJECT_NAME})
+
+//////////////////////////////////////////////////////////////////////////////////////////
+package.xml
+
+cd ~/ros2_ws
+colcon build --packages-select pub1_3
+source install/setup.bash
+ros2 run pub1_3 pub1_3_node
+
